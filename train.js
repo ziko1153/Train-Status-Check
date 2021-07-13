@@ -3,8 +3,6 @@ const nodemailer = require("nodemailer");
 
 async function emailSend() {
 
-    let testAccount = await nodemailer.createTestAccount();
-
     // create reusable transporter object using the default SMTP transport
     let transporter = nodemailer.createTransport({
         host: "smpt.server",
@@ -33,22 +31,33 @@ async function emailSend() {
 const checkTrainTicketClassAvaialble = () => {
 
     axios
-        .get("https://www.esheba.cnsbd.com/v1/to-stations/DA")
+        .get("https://www.esheba.cnsbd.com/v1/trains?journey_date=2021-07-16&from_station=DA&to_station=KLN&class=S_CHAIR&adult=4&child=0")
         .then(value => {
 
-            let station = value.data.filter(station => station.dest == 'KHULNA')
-            console.log(station[0]);
-            if (station[0].classes.length > 0) {
-                console.log('\x1b[32m%s\x1b[0m', 'Yahoo Train Class Found');
-                emailSend().catch(console.error);
+            if (value.status == 200) {
+
+                let data = value.data;
+                console.log(data);
+                if (data.length > 0) {
+                    console.log('\x1b[32m%s\x1b[0m', 'Yahoo Train  Found');
+                    emailSend().catch(console.error);
+                } else {
+                    console.log('\x1b[31m%s\x1b[0m', 'No Train  Found & Server Okay');
+                }
+
+            } else {
+                console.log('\x1b[31m%s\x1b[0m', 'Oho Something Went worng on Server');
             }
-            else console.log('\x1b[31m%s\x1b[0m', 'No Train Class Found');
+
+
 
         })
         .catch(e => {
-            console.log("Error ----------->", e);
+            console.log("Error ----------->", e.response);
         });
 };
+
+checkTrainTicketClassAvaialble();
 
 setInterval(() => {
     checkTrainTicketClassAvaialble();
